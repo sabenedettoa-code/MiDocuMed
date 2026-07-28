@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MiDocuMed - Gestión Médica e Integración Calendar</title>
-  
-  <!-- FAVICON EN SVG INCRUSTADO -->
+  <title>MiDocuMed - Tu Salud en Orden</title>
+
+  <!-- MANIFEST EMBEBIDO PARA PWA INSTALABLE -->
+  <link rel="manifest" href="data:application/manifest+json;utf8,%7B%22name%22%3A%22MiDocuMed%22%2C%22short_name%22%3A%22MiDocuMed%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f1f5f9%22%2C%22theme_color%22%3A%22%231d4ed8%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20100%20100'%3E%3Crect%20width%3D'100'%20height%3D'100'%20rx%3D'22'%20fill%3D'%232563eb'%2F%3E%3Cpath%20d%3D'M35%2020h24l16%2016v39c0%203.3-2.7%206-6%206H35c-3.3%200-6-2.7-6-6V26c0-3.3%202.7-6%206-6z'%20fill%3D'%23ffffff'%2F%3E%3Cpath%20d%3D'M46%2038h18v8H46z'%20fill%3D'%232563eb'%2F%3E%3Cpath%20d%3D'M51%2033h8v18h-8z'%20fill%3D'%232563eb'%2F%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><path d='M30 25h26l14 14v36c0 4.4-3.6 8-8 8H30c-4.4 0-8-3.6-8-8V33c0-4.4 3.6-8 8-8z' fill='%23ffffff' opacity='0.25'/><path d='M35 20h24l16 16v39c0 3.3-2.7 6-6 6H35c-3.3 0-6-2.7-6-6V26c0-3.3 2.7-6 6-6z' fill='%23ffffff'/><path d='M46 38h18v8H46z' fill='%232563eb'/><path d='M51 33h8v18h-8z' fill='%232563eb'/><path d='M39 56h32v4H39zm0 8h24v4H39z' fill='%2394a3b8'/></svg>">
 
   <style>
@@ -15,23 +17,58 @@
 
     a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #1d4ed8 !important; outline-offset: 3px !important; }
 
-    header.main-header { width: 100%; max-width: 750px; margin-bottom: 24px; text-align: center; position: relative; }
-    .top-controls { position: absolute; top: 0; right: 0; display: flex; gap: 6px; align-items: center; }
+    /* CABECERA CORREGIDA SIN SOLAPAMIENTO */
+    header.main-header { 
+      width: 100%; 
+      max-width: 750px; 
+      margin-bottom: 20px; 
+      text-align: center; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-container { display: inline-flex; align-items: center; gap: 10px; }
+    .brand-logo { width: 2.25rem; height: 2.25rem; }
+    .brand { color: #1d4ed8; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; }
+    .subtitle { color: #334155; font-size: 0.95rem; margin-bottom: 6px; }
+
+    .top-controls { 
+      display: flex; 
+      gap: 8px; 
+      align-items: center; 
+      justify-content: center;
+      flex-wrap: wrap; 
+    }
+
     .font-control-group { display: flex; background-color: #cbd5e1; border: 1px solid #94a3b8; border-radius: 20px; padding: 2px; }
     .btn-icon { background: transparent; color: #0f172a; border: none; border-radius: 50%; width: 32px; height: 32px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
     .btn-icon:hover { background-color: #94a3b8; }
     .btn-help { background-color: #cbd5e1; border: 1px solid #94a3b8; border-radius: 50%; width: 36px; height: 36px; }
 
-    .brand-container { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-    .brand-logo { width: 2.25rem; height: 2.25rem; }
-    .brand { color: #1d4ed8; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; }
-    .subtitle { color: #334155; font-size: 0.95rem; margin-bottom: 16px; }
+    .btn-pwa-install { display: none; background-color: #1d4ed8; color: #ffffff; border: none; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+    .btn-notify-perm { background-color: #0d9488; color: #ffffff; border: none; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+
+    .welcome-banner {
+      display: none;
+      width: 100%;
+      max-width: 750px;
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+    }
+    .welcome-banner h2 { color: #1e40af; font-size: 1.15rem; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .welcome-banner p { color: #1e3a8a; font-size: 0.9rem; line-height: 1.4; }
 
     .user-bar { display: none; justify-content: space-between; align-items: center; width: 100%; max-width: 750px; background: #e2e8f0; padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; }
     .user-info { font-weight: 700; font-size: 0.9rem; color: #1e293b; }
     .btn-logout { background-color: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 700; }
 
-    .nav-tabs { display: flex; background: #cbd5e1; padding: 4px; border-radius: 10px; gap: 4px; flex-wrap: wrap; }
+    .nav-tabs { display: flex; background: #cbd5e1; padding: 4px; border-radius: 10px; gap: 4px; flex-wrap: wrap; width: 100%; max-width: 750px; }
     .tab-btn { flex: 1; min-width: 120px; padding: 10px 12px; border: none; background: transparent; color: #1e293b; font-weight: 700; font-size: 0.9rem; border-radius: 8px; cursor: pointer; }
     .tab-btn[aria-selected="true"] { background: #ffffff; color: #1d4ed8; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
@@ -43,28 +80,15 @@
     .form-row { display: flex; gap: 16px; }
     .form-row .form-group { flex: 1; }
     label { font-size: 0.9rem; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
-    .input-hint { font-size: 0.8rem; color: #475569; margin-top: 4px; }
-    input, select { width: 100%; padding: 10px 14px; border: 1.5px solid #64748b; border-radius: 8px; font-size: 0.95rem; color: #0f172a; background-color: #f8fafc; outline: none; }
+    input, select, textarea { width: 100%; padding: 10px 14px; border: 1.5px solid #64748b; border-radius: 8px; font-size: 0.95rem; color: #0f172a; background-color: #f8fafc; outline: none; }
+    textarea { resize: vertical; min-height: 70px; }
 
     .btn-submit { width: 100%; padding: 12px; background-color: #1d4ed8; color: #ffffff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; }
     .btn-submit:hover { background-color: #1e40af; }
     .btn-submit:disabled { background-color: #94a3b8; cursor: not-allowed; }
 
     .btn-google {
-      width: 100%;
-      padding: 10px;
-      background-color: #ffffff;
-      color: #334155;
-      border: 1.5px solid #cbd5e1;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 12px;
+      width: 100%; padding: 10px; background-color: #ffffff; color: #334155; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 12px;
     }
     .btn-google:hover { background-color: #f8fafc; }
 
@@ -72,16 +96,25 @@
     .card-info h4 { color: #0f172a; font-size: 1rem; margin-bottom: 4px; }
     .card-info p { color: #334155; font-size: 0.85rem; }
     .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; background-color: #dbeafe; color: #1e40af; margin-bottom: 6px; }
+    .badge-past { background-color: #e2e8f0; color: #475569; }
 
     .action-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
     .btn-view { background-color: #0284c7; color: #ffffff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 700; text-decoration: none; }
     .btn-gcalendar { background-color: #15803d; color: #ffffff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 700; text-decoration: none; }
+    .btn-ics { background-color: #0d9488; color: #ffffff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 700; text-decoration: none; }
+    .btn-print { background-color: #475569; color: #ffffff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 700; }
     .btn-danger { background-color: #b91c1c; color: #ffffff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 700; }
+
+    .filter-pills { display: flex; gap: 8px; margin-bottom: 16px; }
+    .pill-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid #cbd5e1; background: #f1f5f9; color: #475569; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
+    .pill-btn.active { background: #1d4ed8; color: #ffffff; border-color: #1d4ed8; }
 
     .alert { display: none; padding: 14px; border-radius: 8px; font-size: 0.95rem; margin-bottom: 20px; }
     .alert-success { background-color: #dcfce7; border: 1px solid #166534; color: #14532d; }
     .alert-error { background-color: #fef2f2; border: 1px solid #b91c1c; color: #991b1b; }
     .empty-state { text-align: center; color: #475569; padding: 24px; font-size: 0.95rem; }
+
+    .search-box { margin-bottom: 16px; }
 
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
     .modal-card { background: #ffffff; max-width: 480px; width: 100%; border-radius: 16px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); text-align: center; }
@@ -93,8 +126,14 @@
     .tutorial-footer { display: flex; justify-content: space-between; align-items: center; }
     .btn-secondary { background: #e2e8f0; color: #0f172a; border: 1px solid #94a3b8; padding: 8px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 
+    @media print {
+      body { background: #fff; padding: 0; color: #000; }
+      .top-controls, .user-bar, .nav-tabs, .filter-pills, .action-buttons, .welcome-banner, #tutorial-modal, form, .search-box { display: none !important; }
+      .container { max-width: 100%; box-shadow: none; padding: 0; }
+      .card-item { border: 1px solid #ccc; page-break-inside: avoid; }
+    }
+
     @media (max-width: 600px) {
-      .top-controls { position: relative; justify-content: center; margin-bottom: 12px; }
       .form-row { flex-direction: column; gap: 0; }
       .card-item { flex-direction: column; align-items: flex-start; gap: 12px; }
     }
@@ -103,15 +142,6 @@
 <body>
 
   <header class="main-header">
-    <div class="top-controls">
-      <div class="font-control-group" role="group" aria-label="Controles de tamaño de texto">
-        <button class="btn-icon" onclick="changeFontSize(-1)" aria-label="Reducir texto">A-</button>
-        <button class="btn-icon" onclick="resetFontSize()" aria-label="Restablecer texto">A</button>
-        <button class="btn-icon" onclick="changeFontSize(1)" aria-label="Aumentar texto">A+</button>
-      </div>
-      <button class="btn-icon btn-help" onclick="openTutorial()" aria-label="Ver tutorial">?</button>
-    </div>
-    
     <div class="brand-container">
       <svg class="brand-logo" viewBox="0 0 100 100" aria-hidden="true">
         <rect width="100" height="100" rx="22" fill="#2563eb"/>
@@ -121,7 +151,19 @@
       </svg>
       <span class="brand">MiDocuMed</span>
     </div>
-    <p class="subtitle">Gestión inteligente de citas y exámenes médicos en la Nube</p>
+    <p class="subtitle">Tu salud en orden y al alcance de tu mano</p>
+
+    <div class="top-controls">
+      <button id="btn-notify-perm" class="btn-notify-perm" onclick="requestNotificationPermission()">🔔 Activar Alertas</button>
+      <button id="btn-install-app" class="btn-pwa-install" onclick="installPwaApp()">📲 Instalar App</button>
+      
+      <div class="font-control-group" role="group" aria-label="Controles de tamaño de texto">
+        <button class="btn-icon" onclick="changeFontSize(-1)" aria-label="Reducir texto">A-</button>
+        <button class="btn-icon" onclick="resetFontSize()" aria-label="Restablecer texto">A</button>
+        <button class="btn-icon" onclick="changeFontSize(1)" aria-label="Aumentar texto">A+</button>
+      </div>
+      <button class="btn-icon btn-help" onclick="openTutorial()" aria-label="Ver tutorial">?</button>
+    </div>
     
     <nav id="app-nav" class="nav-tabs" style="display:none;" role="tablist">
       <button class="tab-btn" id="btn-agendar" role="tab" aria-selected="true" aria-controls="tab-agendar" onclick="switchTab('tab-agendar', event)">Agendar Cita</button>
@@ -130,7 +172,11 @@
     </nav>
   </header>
 
-  <!-- BARRA DE SESIÓN -->
+  <div id="welcome-banner" class="welcome-banner">
+    <h2 id="welcome-title">✨ ¡Nos alegra tenerte aquí!</h2>
+    <p id="welcome-subtitle">Recuerda que tener tus citas y exámenes organizados es el primer paso para cuidar de ti y de los que amas.</p>
+  </div>
+
   <div id="user-bar" class="user-bar">
     <span id="user-email-display" class="user-info">Cargando...</span>
     <button class="btn-logout" onclick="logoutUser()">Cerrar Sesión</button>
@@ -138,9 +184,11 @@
 
   <main class="container">
     
-    <!-- PESTAÑA DE AUTENTICACIÓN / LOGIN -->
+    <!-- PESTAÑA LOGIN -->
     <section id="tab-auth" class="tab-content active">
-      <h3 id="auth-title" style="margin-bottom: 16px; font-size: 1.2rem; color: #0f172a; text-align: center;">Iniciar Sesión en MiDocuMed</h3>
+      <h3 id="auth-title" style="margin-bottom: 8px; font-size: 1.25rem; color: #0f172a; text-align: center;">¡Hola! Te damos la bienvenida a MiDocuMed</h3>
+      <p style="text-align: center; color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">Tu espacio seguro para organizar tus consultas y exámenes médicos.</p>
+      
       <div id="alert-auth" class="alert alert-error"></div>
 
       <form id="form-auth">
@@ -157,7 +205,6 @@
         <button type="submit" id="btn-auth-submit" class="btn-submit">Iniciar Sesión</button>
       </form>
 
-      <!-- BOTÓN CONTINUAR CON GOOGLE -->
       <button class="btn-google" id="btn-google-login" onclick="loginWithGoogle()">
         <svg width="18" height="18" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -207,7 +254,12 @@
           </section>
         </div>
 
-        <hr class="divider">
+        <section class="form-group">
+          <label for="appointment-notes">Indicaciones o Notas Previas (Opcional)</label>
+          <textarea id="appointment-notes" placeholder="Ej. Ayuno de 8 horas, traer carnet de identidad, centro médico piso 3..."></textarea>
+        </section>
+
+        <hr style="border:0; height:1px; background:#cbd5e1; margin:20px 0;">
 
         <section class="form-group">
           <label for="patient-name">Nombre completo del paciente</label>
@@ -237,7 +289,7 @@
 
     <!-- PESTAÑA 2: EXÁMENES MÉDICOS -->
     <section id="tab-examenes" class="tab-content">
-      <div id="alert-examen" class="alert alert-success" role="status">¡Examen guardado en Cloud Storage exitosamente!</div>
+      <div id="alert-examen" class="alert alert-success" role="status">¡Examen guardado correctamente!</div>
 
       <form id="form-examen">
         <section class="form-group">
@@ -273,17 +325,32 @@
           <input type="file" id="exam-file" accept=".pdf, image/*" required>
         </section>
 
-        <button type="submit" id="btn-examen-submit" class="btn-submit">Subir y Guardar Examen en Nube</button>
+        <button type="submit" id="btn-examen-submit" class="btn-submit">Guardar Examen en MiDocuMed</button>
       </form>
 
-      <hr class="divider">
-      <h3 style="margin-bottom: 12px; font-size: 1rem; color: #0f172a;">Documentos Guardados en la Nube</h3>
+      <hr style="border:0; height:1px; background:#cbd5e1; margin:20px 0;">
+      <h3 style="margin-bottom: 12px; font-size: 1rem; color: #0f172a;">Documentos Guardados</h3>
+      
+      <div class="search-box">
+        <input type="text" id="search-exams" placeholder="🔍 Buscar examen por nombre o categoría..." onkeyup="filterExams()">
+      </div>
+
       <div id="exam-list"></div>
     </section>
 
     <!-- PESTAÑA 3: MIS CITAS -->
     <section id="tab-citas" class="tab-content">
-      <h3 style="margin-bottom: 16px; font-size: 1.1rem; color: #0f172a;">Próximas Citas Médicas</h3>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+        <h3 style="font-size: 1.1rem; color: #0f172a;">Historial de Citas Médicas</h3>
+        <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+      </div>
+
+      <div class="filter-pills">
+        <button class="pill-btn active" id="pill-upcoming" onclick="filterAppointments('upcoming')">Próximas</button>
+        <button class="pill-btn" id="pill-past" onclick="filterAppointments('past')">Pasadas</button>
+        <button class="pill-btn" id="pill-all" onclick="filterAppointments('all')">Todas</button>
+      </div>
+
       <div id="appointments-list"></div>
     </section>
 
@@ -294,20 +361,20 @@
     <div class="modal-card" tabIndex="-1" id="modal-card">
       <div class="tutorial-step active" id="step-1">
         <div class="tutorial-icon">👋</div>
-        <h2 class="tutorial-title">¡Bienvenido a MiDocuMed Nube!</h2>
-        <p class="tutorial-desc">Plataforma médica segura con inicio de sesión y sincronización en vivo mediante Google Firebase.</p>
+        <h2 class="tutorial-title">¡Bienvenido a MiDocuMed!</h2>
+        <p class="tutorial-desc">Plataforma médica segura diseñada para acompañarte en la organización de tus consultas y exámenes de salud.</p>
       </div>
 
       <div class="tutorial-step" id="step-2">
-        <div class="tutorial-icon">🔒</div>
-        <h2 class="tutorial-title">Tu Cuenta Personal</h2>
-        <p class="tutorial-desc">Inicia sesión con correo o Google para acceder a tus citas y exámenes desde cualquier teléfono o computadora.</p>
+        <div class="tutorial-icon">🔔</div>
+        <h2 class="tutorial-title">Alertas del Sistema</h2>
+        <p class="tutorial-desc">Activa las notificaciones en tu celular para recibir alertas cuando agendes o tengas citas programadas.</p>
       </div>
 
       <div class="tutorial-step" id="step-3">
-        <div class="tutorial-icon">☁️</div>
-        <h2 class="tutorial-title">Almacenamiento Ilimitado</h2>
-        <p class="tutorial-desc">Tus exámenes PDF e imágenes ahora se suben a la nube protegida de Firebase Storage.</p>
+        <div class="tutorial-icon">📲</div>
+        <h2 class="tutorial-title">Instálala en tu Celular</h2>
+        <p class="tutorial-desc">Puedes añadir esta web a tu pantalla de inicio como si fuera una App nativa utilizando el botón "Instalar App".</p>
       </div>
 
       <div class="tutorial-footer">
@@ -317,14 +384,11 @@
     </div>
   </div>
 
-  <!-- FIREBASE SDKs CON TUS CLAVES CONFIGURADAS -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // ✅ CONFIGURACIÓN CONFIGURADA CON TUS CREDENCIALES REALES
     const firebaseConfig = {
       apiKey: "AIzaSyBAXbeKHzbGN-8ihJTCkl2nOtZedlBaHWI",
       authDomain: "midocumed.firebaseapp.com",
@@ -338,18 +402,114 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const storage = getStorage(app);
     const googleProvider = new GoogleAuthProvider();
+
+    enableIndexedDbPersistence(db).catch((err) => {
+      console.log("Persistencia offline no disponible:", err.code);
+    });
 
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwD_V7xFAgdKUarv7b_IqP-0lusTuyPUjOpyMK4zRx0ldL7cxxCsJAaZSF5PsDW3saVsA/exec';
     let currentUser = null;
     let isRegisterMode = false;
+    let cachedAppointments = [];
+    let currentAppointmentFilter = 'upcoming';
+    let deferredPwaPrompt = null;
 
-    // --- AUTENTICACIÓN Y GOOGLE ---
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
+        self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+        self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+        
+        self.addEventListener('notificationclick', e => {
+          e.notification.close();
+          e.waitUntil(clients.openWindow('/'));
+        });
+      `;
+      const blob = new Blob([swCode], { type: 'text/javascript' });
+      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(e => console.log('SW Error:', e));
+    }
+
+    window.requestNotificationPermission = async function() {
+      if (!("Notification" in window)) {
+        alert("Tu navegador o teléfono no soporta notificaciones de sistema.");
+        return;
+      }
+
+      const permission = await Notification.requestPermission();
+      const btn = document.getElementById('btn-notify-perm');
+
+      if (permission === "granted") {
+        btn.textContent = "🔔 Alertas Activas";
+        btn.style.backgroundColor = "#166534";
+        sendSystemNotification("¡Notificaciones Activas en MiDocuMed!", "Te avisaremos cuando agendes citas o tus exámenes estén guardados.");
+      } else if (permission === "denied") {
+        alert("Las notificaciones están bloqueadas en tu navegador. Puedes cambiarlo desde los ajustes del sitio.");
+      }
+    }
+
+    function sendSystemNotification(title, bodyText) {
+      if ("Notification" in window && Notification.permission === "granted") {
+        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.ready.then(reg => {
+            reg.showNotification(title, {
+              body: bodyText,
+              icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><path d='M35 20h24l16 16v39c0 3.3-2.7 6-6 6H35c-3.3 0-6-2.7-6-6V26c0-3.3 2.7-6 6-6z' fill='%23ffffff'/></svg>",
+              vibrate: [200, 100, 200]
+            });
+          });
+        } else {
+          new Notification(title, { body: bodyText });
+        }
+      }
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPwaPrompt = e;
+      const btn = document.getElementById('btn-install-app');
+      if (btn) btn.style.display = 'inline-block';
+    });
+
+    window.installPwaApp = function() {
+      if (deferredPwaPrompt) {
+        deferredPwaPrompt.prompt();
+        deferredPwaPrompt.userChoice.then(() => {
+          deferredPwaPrompt = null;
+          document.getElementById('btn-install-app').style.display = 'none';
+        });
+      }
+    }
+
+    function showWelcomeGreeting(user) {
+      const hour = new Date().getHours();
+      let greeting = "¡Buenas noches";
+      let emoji = "🌙";
+
+      if (hour >= 6 && hour < 12) {
+        greeting = "¡Buenos días";
+        emoji = "☀️";
+      } else if (hour >= 12 && hour < 20) {
+        greeting = "¡Buenas tardes";
+        emoji = "🌤️";
+      }
+
+      const name = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
+      
+      document.getElementById('welcome-title').innerHTML = `${emoji} ${greeting}, ${name}! Te damos la bienvenida.`;
+      document.getElementById('welcome-banner').style.display = 'block';
+
+      if ("Notification" in window && Notification.permission === "granted") {
+        const btn = document.getElementById('btn-notify-perm');
+        btn.textContent = "🔔 Alertas Activas";
+        btn.style.backgroundColor = "#166534";
+      }
+    }
+
     window.toggleAuthMode = function(e) {
       e.preventDefault();
       isRegisterMode = !isRegisterMode;
-      document.getElementById('auth-title').textContent = isRegisterMode ? 'Crear Cuenta en MiDocuMed' : 'Iniciar Sesión en MiDocuMed';
+      document.getElementById('auth-title').textContent = isRegisterMode ? 'Crear Cuenta en MiDocuMed' : '¡Hola! Te damos la bienvenida a MiDocuMed';
       document.getElementById('btn-auth-submit').textContent = isRegisterMode ? 'Registrarse' : 'Iniciar Sesión';
       document.getElementById('auth-toggle-text').textContent = isRegisterMode ? '¿Ya tienes cuenta?' : '¿No tienes una cuenta aún?';
       document.getElementById('auth-toggle-btn').textContent = isRegisterMode ? 'Inicia Sesión' : 'Regístrate gratis';
@@ -399,16 +559,18 @@
         document.getElementById('patient-email').value = user.email;
         document.getElementById('exam-email').value = user.email;
         
+        showWelcomeGreeting(user);
         switchTab('tab-agendar');
       } else {
         document.getElementById('app-nav').style.display = 'none';
         document.getElementById('user-bar').style.display = 'none';
+        document.getElementById('welcome-banner').style.display = 'none';
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.getElementById('tab-auth').classList.add('active');
       }
     });
 
-    // --- MANEJO DE CITAS ---
+    // AGENDAR CITA CON NOTIFICACIÓN PUSH
     document.getElementById('form-cita').addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!currentUser) return;
@@ -423,6 +585,7 @@
         doctor: document.getElementById('doctor').value,
         date: document.getElementById('date').value,
         time: document.getElementById('time').value,
+        notes: document.getElementById('appointment-notes').value || '',
         patientName: document.getElementById('patient-name').value,
         patientEmail: document.getElementById('patient-email').value,
         secondaryEmail: document.getElementById('secondary-email').value,
@@ -433,25 +596,32 @@
         await addDoc(collection(db, "appointments"), newAppointment);
 
         if (APPS_SCRIPT_URL && APPS_SCRIPT_URL !== 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
-          await fetch(APPS_SCRIPT_URL, {
+          fetch(APPS_SCRIPT_URL, {
             method: 'POST', mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newAppointment)
-          });
+          }).catch(e => console.log("Correo AppsScript diferido:", e));
         }
 
         const gcalUrl = createGoogleCalendarUrl(newAppointment);
         document.getElementById('btn-add-gcal-direct').setAttribute('href', gcalUrl);
         showAlert('alert-cita');
+
+        sendSystemNotification(
+          `Cita Confirmada: ${newAppointment.specialty}`,
+          `Médico: ${newAppointment.doctor}\nFecha: ${newAppointment.date} a las ${newAppointment.time} hrs.`
+        );
+
         document.getElementById('form-cita').reset();
       } catch (err) {
-        alert("Error al guardar en la nube: " + err.message);
+        alert("Error al guardar cita: " + err.message);
       }
 
       btnSubmit.disabled = false;
       btnSubmit.textContent = 'Confirmar y Agendar Cita';
     });
 
+    // RENDERIZADO CITAS
     async function renderAppointments() {
       if (!currentUser) return;
       const container = document.getElementById('appointments-list');
@@ -460,27 +630,58 @@
       const q = query(collection(db, "appointments"), where("userId", "==", currentUser.uid));
       const querySnapshot = await getDocs(q);
 
-      if (querySnapshot.empty) {
-        container.innerHTML = '<div class="empty-state">No tienes citas agendadas aún.</div>';
+      cachedAppointments = [];
+      querySnapshot.forEach((docSnap) => {
+        cachedAppointments.push({ id: docSnap.id, ...docSnap.data() });
+      });
+
+      cachedAppointments.sort((a, b) => new Date(`${b.date}T${b.time}`) - new Date(`${a.date}T${a.time}`));
+
+      displayFilteredAppointments();
+    }
+
+    window.filterAppointments = function(filter) {
+      currentAppointmentFilter = filter;
+      document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`pill-${filter}`).classList.add('active');
+      displayFilteredAppointments();
+    }
+
+    function displayFilteredAppointments() {
+      const container = document.getElementById('appointments-list');
+      const now = new Date();
+
+      let filtered = cachedAppointments.filter(item => {
+        const itemDate = new Date(`${item.date}T${item.time}`);
+        if (currentAppointmentFilter === 'upcoming') return itemDate >= now;
+        if (currentAppointmentFilter === 'past') return itemDate < now;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty-state">No tienes citas ${currentAppointmentFilter === 'upcoming' ? 'próximas' : (currentAppointmentFilter === 'past' ? 'pasadas' : '')}.</div>`;
         return;
       }
 
       let html = '';
-      querySnapshot.forEach((docSnap) => {
-        const item = docSnap.data();
-        const id = docSnap.id;
+      filtered.forEach((item) => {
+        const itemDate = new Date(`${item.date}T${item.time}`);
+        const isPast = itemDate < now;
         const gcalUrl = createGoogleCalendarUrl(item);
+
         html += `
-          <article class="card-item">
+          <article class="card-item" style="${isPast ? 'opacity: 0.85;' : ''}">
             <div class="card-info">
-              <span class="badge">${item.specialty}</span>
+              <span class="badge ${isPast ? 'badge-past' : ''}">${item.specialty} ${isPast ? '(Completada/Pasada)' : ''}</span>
               <h4>${item.doctor}</h4>
               <p>📅 ${item.date} — ⏰ <strong>${item.time} hrs</strong></p>
               <p>👤 Paciente: ${item.patientName}</p>
+              ${item.notes ? `<p style="color:#0f172a; margin-top:4px;">📝 <em>${item.notes}</em></p>` : ''}
             </div>
             <div class="action-buttons">
-              <a href="${gcalUrl}" target="_blank" class="btn-gcalendar">📅 Calendar</a>
-              <button class="btn-danger" onclick="deleteAppointmentDoc('${id}')">Cancelar</button>
+              ${!isPast ? `<a href="${gcalUrl}" target="_blank" class="btn-gcalendar">📅 Calendar</a>` : ''}
+              <button class="btn-ics" onclick="downloadIcsFile('${encodeURIComponent(JSON.stringify(item))}')">📥 Archivo .ics</button>
+              <button class="btn-danger" onclick="deleteAppointmentDoc('${item.id}')">Eliminar</button>
             </div>
           </article>
         `;
@@ -488,14 +689,61 @@
       container.innerHTML = html;
     }
 
+    window.downloadIcsFile = function(jsonItem) {
+      const item = JSON.parse(decodeURIComponent(jsonItem));
+      const startDate = new Date(`${item.date}T${item.time}`);
+      const endDate = new Date(startDate.getTime() + 45 * 60000);
+
+      const formatICSDate = date => date.toISOString().replace(/-|:|\.\d\d\d/g, '');
+
+      const icsContent = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//MiDocuMed//Cita Medica//ES',
+        'BEGIN:VEVENT',
+        `SUMMARY:Cita Médica: ${item.specialty} - ${item.doctor}`,
+        `DESCRIPTION:Paciente: ${item.patientName}\\nNotas: ${item.notes || 'Sin observaciones'}`,
+        `DTSTART:${formatICSDate(startDate)}`,
+        `DTEND:${formatICSDate(endDate)}`,
+        'STATUS:CONFIRMED',
+        'BEGIN:VALARM',
+        'TRIGGER:-PT24H',
+        'ACTION:DISPLAY',
+        'DESCRIPTION:Recordatorio de Cita Médica mañana',
+        'END:VALARM',
+        'END:VEVENT',
+        'END:VCALENDAR'
+      ].join('\r\n');
+
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.setAttribute('download', `Cita_${item.specialty}_${item.date}.ics`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
     window.deleteAppointmentDoc = async function(id) {
-      if (confirm('¿Eliminar cita de la base de datos?')) {
+      if (confirm('¿Eliminar registro de cita de la base de datos?')) {
         await deleteDoc(doc(db, "appointments", id));
         renderAppointments();
       }
     }
 
-    // --- MANEJO DE EXÁMENES ---
+    // EXÁMENES CON NOTIFICACIÓN DE CONFIRMACIÓN
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve({
+          dataUrl: reader.result,
+          base64Pure: reader.result.split(',')[1]
+        });
+        reader.onerror = error => reject(error);
+      });
+    }
+
     document.getElementById('form-examen').addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!currentUser) return;
@@ -505,58 +753,82 @@
 
       const btnSubmit = document.getElementById('btn-examen-submit');
       btnSubmit.disabled = true;
-      btnSubmit.textContent = 'Subiendo documento a Cloud Storage...';
+      btnSubmit.textContent = 'Procesando archivo...';
 
       const file = fileInput.files[0];
-      const storagePath = `exams/${currentUser.uid}/${Date.now()}_${file.name}`;
-      const storageRef = ref(storage, storagePath);
+      const { dataUrl, base64Pure } = await fileToBase64(file);
 
-      try {
-        await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(storageRef);
+      const newExam = {
+        id: Date.now(),
+        userId: currentUser.uid,
+        title: document.getElementById('exam-title').value,
+        category: document.getElementById('exam-category').value,
+        date: document.getElementById('exam-date').value,
+        patientEmail: document.getElementById('exam-email').value,
+        fileName: file.name,
+        fileMimeType: file.type,
+        fileDataUrl: dataUrl
+      };
 
-        const newExam = {
-          userId: currentUser.uid,
-          title: document.getElementById('exam-title').value,
-          category: document.getElementById('exam-category').value,
-          date: document.getElementById('exam-date').value,
-          patientEmail: document.getElementById('exam-email').value,
-          fileName: file.name,
-          fileUrl: downloadURL,
-          storagePath: storagePath,
-          createdAt: new Date()
-        };
+      const userStorageKey = `midocumed_exams_${currentUser.uid}`;
+      const exams = JSON.parse(localStorage.getItem(userStorageKey)) || [];
+      exams.push(newExam);
+      localStorage.setItem(userStorageKey, JSON.stringify(exams));
 
-        await addDoc(collection(db, "exams"), newExam);
-
-        showAlert('alert-examen');
-        document.getElementById('form-examen').reset();
-        renderExams();
-      } catch (err) {
-        alert("Error al subir archivo a la nube: " + err.message);
+      if (APPS_SCRIPT_URL && APPS_SCRIPT_URL !== 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT') {
+        fetch(APPS_SCRIPT_URL, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'examen',
+            ...newExam,
+            fileData: base64Pure
+          })
+        }).catch(e => console.log("Correo Apps Script diferido:", e));
       }
 
+      showAlert('alert-examen');
+
+      sendSystemNotification(
+        "Examen Guardado",
+        `Se ha agregado correctamente "${newExam.title}" (${newExam.category}).`
+      );
+
+      document.getElementById('form-examen').reset();
       btnSubmit.disabled = false;
-      btnSubmit.textContent = 'Subir y Guardar Examen en Nube';
+      btnSubmit.textContent = 'Guardar Examen en MiDocuMed';
+      renderExams();
     });
 
-    async function renderExams() {
+    window.renderExams = function() {
       if (!currentUser) return;
+      const userStorageKey = `midocumed_exams_${currentUser.uid}`;
+      const exams = JSON.parse(localStorage.getItem(userStorageKey)) || [];
+      displayFilteredExams(exams);
+    }
+
+    window.filterExams = function() {
+      if (!currentUser) return;
+      const term = document.getElementById('search-exams').value.toLowerCase();
+      const userStorageKey = `midocumed_exams_${currentUser.uid}`;
+      const exams = JSON.parse(localStorage.getItem(userStorageKey)) || [];
+      
+      const filtered = exams.filter(item => 
+        item.title.toLowerCase().includes(term) || 
+        item.category.toLowerCase().includes(term)
+      );
+      displayFilteredExams(filtered);
+    }
+
+    function displayFilteredExams(exams) {
       const container = document.getElementById('exam-list');
-      container.innerHTML = '<div class="empty-state">Cargando documentos de la nube...</div>';
-
-      const q = query(collection(db, "exams"), where("userId", "==", currentUser.uid));
-      const querySnapshot = await getDocs(q);
-
-      if (querySnapshot.empty) {
-        container.innerHTML = '<div class="empty-state">No hay exámenes registrados en la nube.</div>';
+      if (exams.length === 0) {
+        container.innerHTML = '<div class="empty-state">No hay exámenes guardados.</div>';
         return;
       }
 
       let html = '';
-      querySnapshot.forEach((docSnap) => {
-        const item = docSnap.data();
-        const id = docSnap.id;
+      exams.forEach(item => {
         html += `
           <article class="card-item">
             <div class="card-info">
@@ -566,8 +838,8 @@
               <p>📄 Archivo: <strong>${item.fileName}</strong></p>
             </div>
             <div class="action-buttons">
-              <a href="${item.fileUrl}" target="_blank" class="btn-view">👁️ Ver Examen</a>
-              <button class="btn-danger" onclick="deleteExamDoc('${id}', '${item.storagePath}')">Eliminar</button>
+              <button class="btn-view" onclick="viewExam(${item.id})">👁️ Ver Examen</button>
+              <button class="btn-danger" onclick="deleteExamLocal(${item.id})">Eliminar</button>
             </div>
           </article>
         `;
@@ -575,18 +847,38 @@
       container.innerHTML = html;
     }
 
-    window.deleteExamDoc = async function(id, storagePath) {
-      if (confirm('¿Eliminar examen y archivo de la nube?')) {
-        await deleteDoc(doc(db, "exams", id));
-        if (storagePath) {
-          const fileRef = ref(storage, storagePath);
-          await deleteObject(fileRef).catch(e => console.log(e));
+    window.viewExam = function(id) {
+      if (!currentUser) return;
+      const userStorageKey = `midocumed_exams_${currentUser.uid}`;
+      const exams = JSON.parse(localStorage.getItem(userStorageKey)) || [];
+      const exam = exams.find(item => item.id === id);
+
+      if (exam && exam.fileDataUrl) {
+        const win = window.open();
+        if (win) {
+          if (exam.fileMimeType && exam.fileMimeType.includes('pdf')) {
+            win.document.write(`<iframe src="${exam.fileDataUrl}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+          } else {
+            win.document.write(`<div style="display:flex;justify-content:center;align-items:center;min-height:100vh;background:#0f172a;"><img src="${exam.fileDataUrl}" style="max-width:100%;max-height:100vh;object-fit:contain;" alt="${exam.title}" /></div>`);
+          }
         }
+      } else {
+        alert('No se pudo encontrar el archivo.');
+      }
+    }
+
+    window.deleteExamLocal = function(id) {
+      if (!currentUser) return;
+      if (confirm('¿Eliminar este examen?')) {
+        const userStorageKey = `midocumed_exams_${currentUser.uid}`;
+        let exams = JSON.parse(localStorage.getItem(userStorageKey)) || [];
+        exams = exams.filter(item => item.id !== id);
+        localStorage.setItem(userStorageKey, JSON.stringify(exams));
         renderExams();
       }
     }
 
-    // --- FUNCIONES AUXILIARES DE INTERFAZ ---
+    // UTILIDADES INTERFAZ
     const allSpecialties = ["Alergología", "Anestesiología", "Angiología", "Cardiología", "Cirugía General", "Cirugía Plástica", "Dermatología", "Endocrinología", "Gastroenterología", "Geriatría", "Ginecología y Obstetricia", "Hematología", "Infectología", "Inmunología", "Medicina Deporte", "Medicina Familiar", "Medicina General", "Medicina Interna", "Medicina Nuclear", "Nefrología", "Neumología", "Neurocirugía", "Neurología", "Nutriología", "Oftalmología", "Oncología", "Otorrinolaringología", "Pediatría", "Psiquiatría", "Reumatología", "Traumatología y Ortopedia", "Urología"];
 
     let currentFontSize = parseInt(localStorage.getItem('midocumed_font_size')) || 16;
@@ -605,7 +897,7 @@
 
     function createGoogleCalendarUrl(item) {
       const title = encodeURIComponent(`Cita Médica: ${item.specialty} - ${item.doctor}`);
-      const details = encodeURIComponent(`MiDocuMed - Paciente: ${item.patientName}`);
+      const details = encodeURIComponent(`MiDocuMed - Paciente: ${item.patientName}\nNotas: ${item.notes || 'Sin observaciones'}`);
       const startDate = new Date(`${item.date}T${item.time}`);
       const endDate = new Date(startDate.getTime() + 45 * 60000);
       const formatISO = d => d.toISOString().replace(/-|:|\.\d\d\d/g, '');
