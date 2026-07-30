@@ -17,7 +17,6 @@
 
     a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #1d4ed8 !important; outline-offset: 3px !important; }
 
-    /* CABECERA CORREGIDA SIN SOLAPAMIENTO */
     header.main-header { 
       width: 100%; 
       max-width: 750px; 
@@ -40,6 +39,17 @@
       align-items: center; 
       justify-content: center;
       flex-wrap: wrap; 
+    }
+
+    .lang-select {
+      background-color: #ffffff;
+      border: 1px solid #94a3b8;
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #0f172a;
+      cursor: pointer;
     }
 
     .font-control-group { display: flex; background-color: #cbd5e1; border: 1px solid #94a3b8; border-radius: 20px; padding: 2px; }
@@ -118,6 +128,9 @@
 
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
     .modal-card { background: #ffffff; max-width: 480px; width: 100%; border-radius: 16px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); text-align: center; }
+    .modal-viewer { background: #ffffff; max-width: 800px; width: 100%; height: 85vh; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); }
+    .viewer-body { flex: 1; width: 100%; height: 100%; border-radius: 8px; overflow: hidden; background: #0f172a; display: flex; justify-content: center; align-items: center; }
+
     .tutorial-step { display: none; }
     .tutorial-step.active { display: block; }
     .tutorial-icon { font-size: 2.5rem; margin-bottom: 12px; }
@@ -128,7 +141,7 @@
 
     @media print {
       body { background: #fff; padding: 0; color: #000; }
-      .top-controls, .user-bar, .nav-tabs, .filter-pills, .action-buttons, .welcome-banner, #tutorial-modal, form, .search-box { display: none !important; }
+      .top-controls, .user-bar, .nav-tabs, .filter-pills, .action-buttons, .welcome-banner, #tutorial-modal, #viewer-modal, form, .search-box { display: none !important; }
       .container { max-width: 100%; box-shadow: none; padding: 0; }
       .card-item { border: 1px solid #ccc; page-break-inside: avoid; }
     }
@@ -151,11 +164,17 @@
       </svg>
       <span class="brand">MiDocuMed</span>
     </div>
-    <p class="subtitle">Tu salud en orden y al alcance de tu mano</p>
+    <p class="subtitle" data-i18n="appSubtitle">Tu salud en orden y al alcance de tu mano</p>
 
     <div class="top-controls">
-      <button id="btn-notify-perm" class="btn-notify-perm" onclick="requestNotificationPermission()">🔔 Activar Alertas</button>
-      <button id="btn-install-app" class="btn-pwa-install" onclick="installPwaApp()">📲 Instalar App</button>
+      <!-- SELECTOR DE IDIOMA -->
+      <select id="lang-selector" class="lang-select" onchange="changeLanguage(this.value)">
+        <option value="es">🌐 Español</option>
+        <option value="en">🌐 English</option>
+      </select>
+
+      <button id="btn-notify-perm" class="btn-notify-perm" onclick="requestNotificationPermission()" data-i18n="btnAlerts">🔔 Activar Alertas</button>
+      <button id="btn-install-app" class="btn-pwa-install" onclick="installPwaApp()" data-i18n="btnInstall">📲 Instalar App</button>
       
       <div class="font-control-group" role="group" aria-label="Controles de tamaño de texto">
         <button class="btn-icon" onclick="changeFontSize(-1)" aria-label="Reducir texto">A-</button>
@@ -166,43 +185,43 @@
     </div>
     
     <nav id="app-nav" class="nav-tabs" style="display:none;" role="tablist">
-      <button class="tab-btn" id="btn-agendar" role="tab" aria-selected="true" aria-controls="tab-agendar" onclick="switchTab('tab-agendar', event)">Agendar Cita</button>
-      <button class="tab-btn" id="btn-examenes" role="tab" aria-selected="false" aria-controls="tab-examenes" onclick="switchTab('tab-examenes', event)">Exámenes Médicos</button>
-      <button class="tab-btn" id="btn-citas" role="tab" aria-selected="false" aria-controls="tab-citas" onclick="switchTab('tab-citas', event)">Mis Citas</button>
+      <button class="tab-btn" id="btn-agendar" role="tab" aria-selected="true" aria-controls="tab-agendar" onclick="switchTab('tab-agendar', event)" data-i18n="tabSchedule">Agendar Cita</button>
+      <button class="tab-btn" id="btn-examenes" role="tab" aria-selected="false" aria-controls="tab-examenes" onclick="switchTab('tab-examenes', event)" data-i18n="tabExams">Exámenes Médicos</button>
+      <button class="tab-btn" id="btn-citas" role="tab" aria-selected="false" aria-controls="tab-citas" onclick="switchTab('tab-citas', event)" data-i18n="tabAppointments">Mis Citas</button>
     </nav>
   </header>
 
   <div id="welcome-banner" class="welcome-banner">
     <h2 id="welcome-title">✨ ¡Nos alegra tenerte aquí!</h2>
-    <p id="welcome-subtitle">Recuerda que tener tus citas y exámenes organizados es el primer paso para cuidar de ti y de los que amas.</p>
+    <p id="welcome-subtitle" data-i18n="welcomeSubtitle">Recuerda que tener tus citas y exámenes organizados es el primer paso para cuidar de ti y de los que amas.</p>
   </div>
 
   <div id="user-bar" class="user-bar">
     <span id="user-email-display" class="user-info">Cargando...</span>
-    <button class="btn-logout" onclick="logoutUser()">Cerrar Sesión</button>
+    <button class="btn-logout" onclick="logoutUser()" data-i18n="btnLogout">Cerrar Sesión</button>
   </div>
 
   <main class="container">
     
     <!-- PESTAÑA LOGIN -->
     <section id="tab-auth" class="tab-content active">
-      <h3 id="auth-title" style="margin-bottom: 8px; font-size: 1.25rem; color: #0f172a; text-align: center;">¡Hola! Te damos la bienvenida a MiDocuMed</h3>
-      <p style="text-align: center; color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">Tu espacio seguro para organizar tus consultas y exámenes médicos.</p>
+      <h3 id="auth-title" style="margin-bottom: 8px; font-size: 1.25rem; color: #0f172a; text-align: center;" data-i18n="authTitle">¡Hola! Te damos la bienvenida a MiDocuMed</h3>
+      <p style="text-align: center; color: #64748b; font-size: 0.9rem; margin-bottom: 20px;" data-i18n="authSub">Tu espacio seguro para organizar tus consultas y exámenes médicos.</p>
       
       <div id="alert-auth" class="alert alert-error"></div>
 
       <form id="form-auth">
         <section class="form-group">
-          <label for="auth-email">Correo Electrónico</label>
+          <label for="auth-email" data-i18n="lblEmail">Correo Electrónico</label>
           <input type="email" id="auth-email" placeholder="tu@correo.com" required>
         </section>
 
         <section class="form-group">
-          <label for="auth-password">Contraseña</label>
+          <label for="auth-password" data-i18n="lblPassword">Contraseña</label>
           <input type="password" id="auth-password" placeholder="••••••••" required>
         </section>
 
-        <button type="submit" id="btn-auth-submit" class="btn-submit">Iniciar Sesión</button>
+        <button type="submit" id="btn-auth-submit" class="btn-submit" data-i18n="btnAuthSubmit">Iniciar Sesión</button>
       </form>
 
       <button class="btn-google" id="btn-google-login" onclick="loginWithGoogle()">
@@ -212,127 +231,127 @@
           <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.62z"/>
           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
         </svg>
-        Continuar con Google
+        <span data-i18n="btnGoogle">Continuar con Google</span>
       </button>
 
       <p style="text-align: center; margin-top: 16px; font-size: 0.9rem;">
-        <span id="auth-toggle-text">¿No tienes una cuenta aún?</span> 
-        <a href="#" id="auth-toggle-btn" style="color: #1d4ed8; font-weight: 700; text-decoration: none;" onclick="toggleAuthMode(event)">Regístrate gratis</a>
+        <span id="auth-toggle-text" data-i18n="authToggleText">¿No tienes una cuenta aún?</span> 
+        <a href="#" id="auth-toggle-btn" style="color: #1d4ed8; font-weight: 700; text-decoration: none;" onclick="toggleAuthMode(event)" data-i18n="authToggleBtn">Regístrate gratis</a>
       </p>
     </section>
 
     <!-- PESTAÑA 1: AGENDAR CITA -->
     <section id="tab-agendar" class="tab-content">
       <div id="alert-cita" class="alert alert-success" role="status">
-        <p style="font-weight: 700; margin-bottom: 6px;">¡Cita agendada y guardada en la nube!</p>
-        <a id="btn-add-gcal-direct" href="#" target="_blank" class="btn-gcalendar">📅 Añadir Cita a Google Calendar</a>
+        <p style="font-weight: 700; margin-bottom: 6px;" data-i18n="alertCitaSuccess">¡Cita agendada y guardada en la nube!</p>
+        <a id="btn-add-gcal-direct" href="#" target="_blank" class="btn-gcalendar" data-i18n="btnGCal">📅 Añadir Cita a Google Calendar</a>
       </div>
 
       <form id="form-cita">
         <div class="form-row">
           <section class="form-group">
-            <label for="specialty">Especialidad médica</label>
+            <label for="specialty" data-i18n="lblSpecialty">Especialidad médica</label>
             <input type="text" id="specialty" list="specialties-list" placeholder="Ej. Cardiología..." autocomplete="off" required>
             <datalist id="specialties-list"></datalist>
           </section>
 
           <section class="form-group">
-            <label for="doctor">Nombre del Médico</label>
+            <label for="doctor" data-i18n="lblDoctor">Nombre del Médico</label>
             <input type="text" id="doctor" placeholder="Ej. Dr. Juan Pérez" required>
           </section>
         </div>
 
         <div class="form-row">
           <section class="form-group">
-            <label for="date">Fecha de la cita</label>
+            <label for="date" data-i18n="lblDate">Fecha de la cita</label>
             <input type="date" id="date" required>
           </section>
 
           <section class="form-group">
-            <label for="time">Hora exacta</label>
+            <label for="time" data-i18n="lblTime">Hora exacta</label>
             <input type="time" id="time" required>
           </section>
         </div>
 
         <section class="form-group">
-          <label for="appointment-notes">Indicaciones o Notas Previas (Opcional)</label>
+          <label for="appointment-notes" data-i18n="lblNotes">Indicaciones o Notas Previas (Opcional)</label>
           <textarea id="appointment-notes" placeholder="Ej. Ayuno de 8 horas, traer carnet de identidad, centro médico piso 3..."></textarea>
         </section>
 
         <hr style="border:0; height:1px; background:#cbd5e1; margin:20px 0;">
 
         <section class="form-group">
-          <label for="patient-name">Nombre completo del paciente</label>
+          <label for="patient-name" data-i18n="lblPatientName">Nombre completo del paciente</label>
           <input type="text" id="patient-name" placeholder="Ej. Carlos Mendoza" required>
         </section>
 
         <div class="form-row">
           <section class="form-group">
-            <label for="patient-email">Correo principal</label>
+            <label for="patient-email" data-i18n="lblPatientEmail">Correo principal</label>
             <input type="email" id="patient-email" placeholder="ejemplo@correo.com" required>
           </section>
 
           <section class="form-group">
-            <label for="patient-phone">Teléfono de contacto</label>
+            <label for="patient-phone" data-i18n="lblPatientPhone">Teléfono de contacto</label>
             <input type="tel" id="patient-phone" placeholder="+56 9 1234 5678" required>
           </section>
         </div>
 
         <section class="form-group">
-          <label for="secondary-email">Correo del paciente / Copia opcional</label>
+          <label for="secondary-email" data-i18n="lblSecondaryEmail">Correo del paciente / Copia opcional</label>
           <input type="email" id="secondary-email" placeholder="paciente@correo.com (Opcional)">
         </section>
 
-        <button type="submit" id="btn-agendar-submit" class="btn-submit">Confirmar y Agendar Cita</button>
+        <button type="submit" id="btn-agendar-submit" class="btn-submit" data-i18n="btnSubmitCita">Confirmar y Agendar Cita</button>
       </form>
     </section>
 
     <!-- PESTAÑA 2: EXÁMENES MÉDICOS -->
     <section id="tab-examenes" class="tab-content">
-      <div id="alert-examen" class="alert alert-success" role="status">¡Examen guardado correctamente!</div>
+      <div id="alert-examen" class="alert alert-success" role="status" data-i18n="alertExamSuccess">¡Examen guardado correctamente!</div>
 
       <form id="form-examen">
         <section class="form-group">
-          <label for="exam-title">Nombre del Examen / Estudio</label>
+          <label for="exam-title" data-i18n="lblExamTitle">Nombre del Examen / Estudio</label>
           <input type="text" id="exam-title" placeholder="Ej. Hemograma Completo" required>
         </section>
 
         <div class="form-row">
           <section class="form-group">
-            <label for="exam-category">Categoría</label>
+            <label for="exam-category" data-i18n="lblExamCategory">Categoría</label>
             <select id="exam-category" required>
-              <option value="" disabled selected>Selecciona categoría...</option>
-              <option value="Laboratorio">Análisis de Laboratorio</option>
-              <option value="Radiología">Radiología / Imagenología</option>
-              <option value="Cardiología">Electrocardiograma / Ecografía</option>
-              <option value="Otros">Otro tipo</option>
+              <option value="" disabled selected data-i18n="optSelectCat">Selecciona categoría...</option>
+              <option value="Laboratorio" data-i18n="catLab">Análisis de Laboratorio</option>
+              <option value="Radiología" data-i18n="catRad">Radiología / Imagenología</option>
+              <option value="Cardiología" data-i18n="catCard">Electrocardiograma / Ecografía</option>
+              <option value="Otros" data-i18n="catOther">Otro tipo</option>
             </select>
           </section>
 
           <section class="form-group">
-            <label for="exam-date">Fecha del Examen</label>
+            <label for="exam-date" data-i18n="lblExamDate">Fecha del Examen</label>
             <input type="date" id="exam-date" required>
           </section>
         </div>
 
         <section class="form-group">
-          <label for="exam-email">Enviar copia con el documento a este Correo</label>
+          <label for="exam-email" data-i18n="lblExamEmail">Enviar copia con el documento a este Correo</label>
           <input type="email" id="exam-email" placeholder="ejemplo@correo.com" required>
         </section>
 
         <section class="form-group">
-          <label for="exam-file">Adjuntar Documento (PDF o Imagen)</label>
+          <label for="exam-file" data-i18n="lblExamFile">Adjuntar Documento (PDF o Imagen)</label>
           <input type="file" id="exam-file" accept=".pdf, image/*" required>
         </section>
 
-        <button type="submit" id="btn-examen-submit" class="btn-submit">Guardar Examen en MiDocuMed</button>
+        <button type="submit" id="btn-examen-submit" class="btn-submit" data-i18n="btnSubmitExam">Guardar Examen en MiDocuMed</button>
       </form>
 
       <hr style="border:0; height:1px; background:#cbd5e1; margin:20px 0;">
-      <h3 style="margin-bottom: 12px; font-size: 1rem; color: #0f172a;">Documentos Guardados</h3>
+      <h3 style="margin-bottom: 12px; font-size: 1rem; color: #0f172a;" data-i18n="titleExamsSaved">Documentos Guardados</h3>
       
       <div class="search-box">
-        <input type="text" id="search-exams" placeholder="🔍 Buscar examen por nombre o categoría..." onkeyup="filterExams()">
+        <input type="text" id="search-exams" placeholder="🔍 Buscar examen por nombre o categoría..." onkeyup="filterExams()" data-i18n-ph="phSearchExams">
       </div>
 
       <div id="exam-list"></div>
@@ -341,14 +360,14 @@
     <!-- PESTAÑA 3: MIS CITAS -->
     <section id="tab-citas" class="tab-content">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-        <h3 style="font-size: 1.1rem; color: #0f172a;">Historial de Citas Médicas</h3>
-        <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+        <h3 style="font-size: 1.1rem; color: #0f172a;" data-i18n="titleHistory">Historial de Citas Médicas</h3>
+        <button class="btn-print" onclick="window.print()" data-i18n="btnPrint">🖨️ Imprimir / Guardar PDF</button>
       </div>
 
       <div class="filter-pills">
-        <button class="pill-btn active" id="pill-upcoming" onclick="filterAppointments('upcoming')">Próximas</button>
-        <button class="pill-btn" id="pill-past" onclick="filterAppointments('past')">Pasadas</button>
-        <button class="pill-btn" id="pill-all" onclick="filterAppointments('all')">Todas</button>
+        <button class="pill-btn active" id="pill-upcoming" onclick="filterAppointments('upcoming')" data-i18n="pillUpcoming">Próximas</button>
+        <button class="pill-btn" id="pill-past" onclick="filterAppointments('past')" data-i18n="pillPast">Pasadas</button>
+        <button class="pill-btn" id="pill-all" onclick="filterAppointments('all')" data-i18n="pillAll">Todas</button>
       </div>
 
       <div id="appointments-list"></div>
@@ -361,26 +380,37 @@
     <div class="modal-card" tabIndex="-1" id="modal-card">
       <div class="tutorial-step active" id="step-1">
         <div class="tutorial-icon">👋</div>
-        <h2 class="tutorial-title">¡Bienvenido a MiDocuMed!</h2>
-        <p class="tutorial-desc">Plataforma médica segura diseñada para acompañarte en la organización de tus consultas y exámenes de salud.</p>
+        <h2 class="tutorial-title" data-i18n="tut1Title">¡Bienvenido a MiDocuMed!</h2>
+        <p class="tutorial-desc" data-i18n="tut1Desc">Plataforma médica segura diseñada para acompañarte en la organización de tus consultas y exámenes de salud.</p>
       </div>
 
       <div class="tutorial-step" id="step-2">
         <div class="tutorial-icon">🔔</div>
-        <h2 class="tutorial-title">Alertas del Sistema</h2>
-        <p class="tutorial-desc">Activa las notificaciones en tu celular para recibir alertas cuando agendes o tengas citas programadas.</p>
+        <h2 class="tutorial-title" data-i18n="tut2Title">Alertas del Sistema</h2>
+        <p class="tutorial-desc" data-i18n="tut2Desc">Activa las notificaciones en tu celular para recibir alertas cuando agendes o tengas citas programadas.</p>
       </div>
 
       <div class="tutorial-step" id="step-3">
         <div class="tutorial-icon">📲</div>
-        <h2 class="tutorial-title">Instálala en tu Celular</h2>
-        <p class="tutorial-desc">Puedes añadir esta web a tu pantalla de inicio como si fuera una App nativa utilizando el botón "Instalar App".</p>
+        <h2 class="tutorial-title" data-i18n="tut3Title">Instálala en tu Celular</h2>
+        <p class="tutorial-desc" data-i18n="tut3Desc">Puedes añadir esta web a tu pantalla de inicio como si fuera una App nativa utilizando el botón "Instalar App".</p>
       </div>
 
       <div class="tutorial-footer">
-        <button class="btn-secondary" onclick="closeTutorial()">Omitir</button>
-        <button class="btn-submit" style="width: auto; padding: 8px 18px;" id="btn-next-step" onclick="nextTutorialStep()">Siguiente</button>
+        <button class="btn-secondary" onclick="closeTutorial()" data-i18n="btnSkip">Omitir</button>
+        <button class="btn-submit" style="width: auto; padding: 8px 18px;" id="btn-next-step" onclick="nextTutorialStep()" data-i18n="btnNext">Siguiente</button>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL VISOR INTEGRADO DE EXÁMENES -->
+  <div id="viewer-modal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal-viewer">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 id="viewer-title" style="font-size:1.1rem; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:80%;" data-i18n="viewerTitle">Visualizando Examen</h3>
+        <button class="btn-danger" style="padding:6px 14px;" onclick="closeExamViewer()" data-i18n="btnCloseViewer">✕ Cerrar</button>
+      </div>
+      <div class="viewer-body" id="viewer-content"></div>
     </div>
   </div>
 
@@ -415,24 +445,205 @@
     let currentAppointmentFilter = 'upcoming';
     let deferredPwaPrompt = null;
 
+    // --- DICCIONARIO BILINGÜE (TRADUCCIONES ES/EN) ---
+    const i18n = {
+      es: {
+        appSubtitle: "Tu salud en orden y al alcance de tu mano",
+        btnAlerts: "🔔 Activar Alertas",
+        btnAlertsActive: "🔔 Alertas Activas",
+        btnInstall: "📲 Instalar App",
+        tabSchedule: "Agendar Cita",
+        tabExams: "Exámenes Médicos",
+        tabAppointments: "Mis Citas",
+        welcomeSubtitle: "Recuerda que tener tus citas y exámenes organizados es el primer paso para cuidar de ti y de los que amas.",
+        btnLogout: "Cerrar Sesión",
+        authTitleLogin: "¡Hola! Te damos la bienvenida a MiDocuMed",
+        authTitleRegister: "Crear Cuenta en MiDocuMed",
+        authSub: "Tu espacio seguro para organizar tus consultas y exámenes médicos.",
+        lblEmail: "Correo Electrónico",
+        lblPassword: "Contraseña",
+        btnAuthSubmitLogin: "Iniciar Sesión",
+        btnAuthSubmitRegister: "Registrarse",
+        btnGoogle: "Continuar con Google",
+        authToggleTextLogin: "¿No tienes una cuenta aún?",
+        authToggleTextRegister: "¿Ya tienes cuenta?",
+        authToggleBtnLogin: "Regístrate gratis",
+        authToggleBtnRegister: "Inicia Sesión",
+        alertCitaSuccess: "¡Cita agendada y guardada en la nube!",
+        btnGCal: "📅 Añadir Cita a Google Calendar",
+        lblSpecialty: "Especialidad médica",
+        lblDoctor: "Nombre del Médico",
+        lblDate: "Fecha de la cita",
+        lblTime: "Hora exacta",
+        lblNotes: "Indicaciones o Notas Previas (Opcional)",
+        lblPatientName: "Nombre completo del paciente",
+        lblPatientEmail: "Correo principal",
+        lblPatientPhone: "Teléfono de contacto",
+        lblSecondaryEmail: "Correo del paciente / Copia opcional",
+        btnSubmitCita: "Confirmar y Agendar Cita",
+        btnSubmitCitaSaving: "Guardando en Nube y enviando...",
+        alertExamSuccess: "¡Examen guardado correctamente!",
+        lblExamTitle: "Nombre del Examen / Estudio",
+        lblExamCategory: "Categoría",
+        optSelectCat: "Selecciona categoría...",
+        catLab: "Análisis de Laboratorio",
+        catRad: "Radiología / Imagenología",
+        catCard: "Electrocardiograma / Ecografía",
+        catOther: "Otro tipo",
+        lblExamDate: "Fecha del Examen",
+        lblExamEmail: "Enviar copia con el documento a este Correo",
+        lblExamFile: "Adjuntar Documento (PDF o Imagen)",
+        btnSubmitExam: "Guardar Examen en MiDocuMed",
+        titleExamsSaved: "Documentos Guardados",
+        phSearchExams: "🔍 Buscar examen por nombre o categoría...",
+        titleHistory: "Historial de Citas Médicas",
+        btnPrint: "🖨️ Imprimir / Guardar PDF",
+        pillUpcoming: "Próximas",
+        pillPast: "Pasadas",
+        pillAll: "Todas",
+        tut1Title: "¡Bienvenido a MiDocuMed!",
+        tut1Desc: "Plataforma médica segura diseñada para acompañarte en la organización de tus consultas y exámenes de salud.",
+        tut2Title: "Alertas del Sistema",
+        tut2Desc: "Activa las notificaciones en tu celular para recibir alertas cuando agendes o tengas citas programadas.",
+        tut3Title: "Instálala en tu Celular",
+        tut3Desc: "Puedes añadir esta web a tu pantalla de inicio como si fuera una App nativa utilizando el botón 'Instalar App'.",
+        btnSkip: "Omitir",
+        btnNext: "Siguiente",
+        btnStart: "Comenzar",
+        viewerTitle: "Visualizando Examen",
+        btnCloseViewer: "✕ Cerrar",
+        goodMorning: "¡Buenos días",
+        goodAfternoon: "¡Buenas tardes",
+        goodNight: "¡Buenas noches",
+        welcomeBack: "Te damos la bienvenida."
+      },
+      en: {
+        appSubtitle: "Your health in order and within your reach",
+        btnAlerts: "🔔 Enable Alerts",
+        btnAlertsActive: "🔔 Alerts Active",
+        btnInstall: "📲 Install App",
+        tabSchedule: "Schedule Appointment",
+        tabExams: "Medical Exams",
+        tabAppointments: "My Appointments",
+        welcomeSubtitle: "Remember that keeping your appointments and medical records organized is the first step to taking care of yourself and your loved ones.",
+        btnLogout: "Log Out",
+        authTitleLogin: "Hello! Welcome to MiDocuMed",
+        authTitleRegister: "Create Account on MiDocuMed",
+        authSub: "Your secure space to organize your consultations and medical exams.",
+        lblEmail: "Email Address",
+        lblPassword: "Password",
+        btnAuthSubmitLogin: "Log In",
+        btnAuthSubmitRegister: "Sign Up",
+        btnGoogle: "Continue with Google",
+        authToggleTextLogin: "Don't have an account yet?",
+        authToggleTextRegister: "Already have an account?",
+        authToggleBtnLogin: "Sign up for free",
+        authToggleBtnRegister: "Log In",
+        alertCitaSuccess: "Appointment scheduled and saved to the cloud!",
+        btnGCal: "📅 Add to Google Calendar",
+        lblSpecialty: "Medical Specialty",
+        lblDoctor: "Doctor's Name",
+        lblDate: "Appointment Date",
+        lblTime: "Exact Time",
+        lblNotes: "Prior Instructions or Notes (Optional)",
+        lblPatientName: "Patient's Full Name",
+        lblPatientEmail: "Primary Email",
+        lblPatientPhone: "Contact Phone",
+        lblSecondaryEmail: "Patient Email / Optional Copy",
+        btnSubmitCita: "Confirm and Schedule Appointment",
+        btnSubmitCitaSaving: "Saving to Cloud and sending...",
+        alertExamSuccess: "Exam saved successfully!",
+        lblExamTitle: "Exam / Study Name",
+        lblExamCategory: "Category",
+        optSelectCat: "Select category...",
+        catLab: "Laboratory Analysis",
+        catRad: "Radiology / Imaging",
+        catCard: "Electrocardiogram / Ultrasound",
+        catOther: "Other Type",
+        lblExamDate: "Exam Date",
+        lblExamEmail: "Send copy with document to this Email",
+        lblExamFile: "Attach Document (PDF or Image)",
+        btnSubmitExam: "Save Exam in MiDocuMed",
+        titleExamsSaved: "Saved Documents",
+        phSearchExams: "🔍 Search exam by name or category...",
+        titleHistory: "Medical Appointment History",
+        btnPrint: "🖨️ Print / Save as PDF",
+        pillUpcoming: "Upcoming",
+        pillPast: "Past",
+        pillAll: "All",
+        tut1Title: "Welcome to MiDocuMed!",
+        tut1Desc: "Secure medical platform designed to assist you in organizing your health consultations and exams.",
+        tut2Title: "System Alerts",
+        tut2Desc: "Enable notifications on your phone to receive alerts when you schedule or have upcoming appointments.",
+        tut3Title: "Install on your Phone",
+        tut3Desc: "You can add this web app to your home screen like a native App using the 'Install App' button.",
+        btnSkip: "Skip",
+        btnNext: "Next",
+        btnStart: "Start",
+        viewerTitle: "Viewing Exam",
+        btnCloseViewer: "✕ Close",
+        goodMorning: "Good morning",
+        goodAfternoon: "Good afternoon",
+        goodNight: "Good evening",
+        welcomeBack: "Welcome back."
+      }
+    };
+
+    let currentLang = localStorage.getItem('midocumed_lang') || (navigator.language.startsWith('es') ? 'es' : 'en');
+
+    window.changeLanguage = function(lang) {
+      currentLang = lang;
+      localStorage.setItem('midocumed_lang', lang);
+      document.getElementById('lang-selector').value = lang;
+      document.documentElement.lang = lang;
+      applyTranslations();
+      if (currentUser) showWelcomeGreeting(currentUser);
+    };
+
+    function applyTranslations() {
+      const dict = i18n[currentLang];
+
+      // Traducir elementos con atributo data-i18n
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) el.textContent = dict[key];
+      });
+
+      // Traducir placeholders
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const key = el.getAttribute('data-i18n-ph');
+        if (dict[key]) el.placeholder = dict[key];
+      });
+
+      // Actualizar modo Auth
+      document.getElementById('auth-title').textContent = isRegisterMode ? dict.authTitleRegister : dict.authTitleLogin;
+      document.getElementById('btn-auth-submit').textContent = isRegisterMode ? dict.btnAuthSubmitRegister : dict.btnAuthSubmitLogin;
+      document.getElementById('auth-toggle-text').textContent = isRegisterMode ? dict.authToggleTextRegister : dict.authToggleTextLogin;
+      document.getElementById('auth-toggle-btn').textContent = isRegisterMode ? dict.authToggleBtnRegister : dict.authToggleBtnLogin;
+
+      // Volver a renderizar listas si están activas
+      if (currentUser) {
+        displayFilteredAppointments();
+        renderExams();
+      }
+    }
+
+    // REGISTRO DE SERVICE WORKER
     if ('serviceWorker' in navigator) {
-      const swCode = `
-        self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
-        self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-        self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
-        
-        self.addEventListener('notificationclick', e => {
-          e.notification.close();
-          e.waitUntil(clients.openWindow('/'));
-        });
-      `;
-      const blob = new Blob([swCode], { type: 'text/javascript' });
-      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(e => console.log('SW Error:', e));
+      navigator.serviceWorker.register('/sw.js').catch(() => {
+        const swCode = `
+          self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
+          self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+          self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+        `;
+        const blob = new Blob([swCode], { type: 'text/javascript' });
+        navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(e => console.log('SW Note:', e));
+      });
     }
 
     window.requestNotificationPermission = async function() {
       if (!("Notification" in window)) {
-        alert("Tu navegador o teléfono no soporta notificaciones de sistema.");
+        alert(currentLang === 'es' ? "Tu navegador o teléfono no soporta notificaciones de sistema." : "Your browser or phone does not support system notifications.");
         return;
       }
 
@@ -440,27 +651,23 @@
       const btn = document.getElementById('btn-notify-perm');
 
       if (permission === "granted") {
-        btn.textContent = "🔔 Alertas Activas";
+        btn.textContent = i18n[currentLang].btnAlertsActive;
         btn.style.backgroundColor = "#166534";
-        sendSystemNotification("¡Notificaciones Activas en MiDocuMed!", "Te avisaremos cuando agendes citas o tus exámenes estén guardados.");
+        sendSystemNotification(
+          currentLang === 'es' ? "¡Notificaciones Activas!" : "Notifications Active!",
+          currentLang === 'es' ? "Te avisaremos de tus citas y exámenes guardados." : "We will notify you about your saved appointments and exams."
+        );
       } else if (permission === "denied") {
-        alert("Las notificaciones están bloqueadas en tu navegador. Puedes cambiarlo desde los ajustes del sitio.");
+        alert(currentLang === 'es' ? "Las notificaciones están bloqueadas en tu navegador." : "Notifications are blocked in your browser.");
       }
     }
 
     function sendSystemNotification(title, bodyText) {
       if ("Notification" in window && Notification.permission === "granted") {
-        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.ready.then(reg => {
-            reg.showNotification(title, {
-              body: bodyText,
-              icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><path d='M35 20h24l16 16v39c0 3.3-2.7 6-6 6H35c-3.3 0-6-2.7-6-6V26c0-3.3 2.7-6 6-6z' fill='%23ffffff'/></svg>",
-              vibrate: [200, 100, 200]
-            });
-          });
-        } else {
-          new Notification(title, { body: bodyText });
-        }
+        new Notification(title, { 
+          body: bodyText,
+          icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><path d='M35 20h24l16 16v39c0 3.3-2.7 6-6 6H35c-3.3 0-6-2.7-6-6V26c0-3.3 2.7-6 6-6z' fill='%23ffffff'/></svg>" 
+        });
       }
     }
 
@@ -483,25 +690,26 @@
 
     function showWelcomeGreeting(user) {
       const hour = new Date().getHours();
-      let greeting = "¡Buenas noches";
+      const dict = i18n[currentLang];
+      let greeting = dict.goodNight;
       let emoji = "🌙";
 
       if (hour >= 6 && hour < 12) {
-        greeting = "¡Buenos días";
+        greeting = dict.goodMorning;
         emoji = "☀️";
       } else if (hour >= 12 && hour < 20) {
-        greeting = "¡Buenas tardes";
+        greeting = dict.goodAfternoon;
         emoji = "🌤️";
       }
 
       const name = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
       
-      document.getElementById('welcome-title').innerHTML = `${emoji} ${greeting}, ${name}! Te damos la bienvenida.`;
+      document.getElementById('welcome-title').innerHTML = `${emoji} ${greeting}, ${name}! ${dict.welcomeBack}`;
       document.getElementById('welcome-banner').style.display = 'block';
 
       if ("Notification" in window && Notification.permission === "granted") {
         const btn = document.getElementById('btn-notify-perm');
-        btn.textContent = "🔔 Alertas Activas";
+        btn.textContent = dict.btnAlertsActive;
         btn.style.backgroundColor = "#166534";
       }
     }
@@ -509,10 +717,7 @@
     window.toggleAuthMode = function(e) {
       e.preventDefault();
       isRegisterMode = !isRegisterMode;
-      document.getElementById('auth-title').textContent = isRegisterMode ? 'Crear Cuenta en MiDocuMed' : '¡Hola! Te damos la bienvenida a MiDocuMed';
-      document.getElementById('btn-auth-submit').textContent = isRegisterMode ? 'Registrarse' : 'Iniciar Sesión';
-      document.getElementById('auth-toggle-text').textContent = isRegisterMode ? '¿Ya tienes cuenta?' : '¿No tienes una cuenta aún?';
-      document.getElementById('auth-toggle-btn').textContent = isRegisterMode ? 'Inicia Sesión' : 'Regístrate gratis';
+      applyTranslations();
     }
 
     document.getElementById('form-auth').addEventListener('submit', async (e) => {
@@ -540,7 +745,7 @@
       try {
         await signInWithPopup(auth, googleProvider);
       } catch (err) {
-        alertAuth.textContent = "Error con Google: " + err.message;
+        alertAuth.textContent = "Error Google: " + err.message;
         alertAuth.style.display = 'block';
       }
     }
@@ -555,7 +760,7 @@
         document.getElementById('tab-auth').classList.remove('active');
         document.getElementById('app-nav').style.display = 'flex';
         document.getElementById('user-bar').style.display = 'flex';
-        document.getElementById('user-email-display').textContent = `👤 Sesión: ${user.email}`;
+        document.getElementById('user-email-display').textContent = `👤 ${user.email}`;
         document.getElementById('patient-email').value = user.email;
         document.getElementById('exam-email').value = user.email;
         
@@ -570,14 +775,14 @@
       }
     });
 
-    // AGENDAR CITA CON NOTIFICACIÓN PUSH
+    // AGENDAR CITA
     document.getElementById('form-cita').addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!currentUser) return;
 
       const btnSubmit = document.getElementById('btn-agendar-submit');
       btnSubmit.disabled = true;
-      btnSubmit.textContent = 'Guardando en Nube y enviando...';
+      btnSubmit.textContent = i18n[currentLang].btnSubmitCitaSaving;
 
       const newAppointment = {
         userId: currentUser.uid,
@@ -608,24 +813,24 @@
         showAlert('alert-cita');
 
         sendSystemNotification(
-          `Cita Confirmada: ${newAppointment.specialty}`,
-          `Médico: ${newAppointment.doctor}\nFecha: ${newAppointment.date} a las ${newAppointment.time} hrs.`
+          `${currentLang === 'es' ? 'Cita Confirmada' : 'Appointment Confirmed'}: ${newAppointment.specialty}`,
+          `${newAppointment.doctor}\n${newAppointment.date} - ${newAppointment.time} hrs.`
         );
 
         document.getElementById('form-cita').reset();
       } catch (err) {
-        alert("Error al guardar cita: " + err.message);
+        alert("Error: " + err.message);
       }
 
       btnSubmit.disabled = false;
-      btnSubmit.textContent = 'Confirmar y Agendar Cita';
+      btnSubmit.textContent = i18n[currentLang].btnSubmitCita;
     });
 
     // RENDERIZADO CITAS
     async function renderAppointments() {
       if (!currentUser) return;
       const container = document.getElementById('appointments-list');
-      container.innerHTML = '<div class="empty-state">Cargando citas de la nube...</div>';
+      container.innerHTML = `<div class="empty-state">${currentLang === 'es' ? 'Cargando citas de la nube...' : 'Loading appointments from cloud...'}</div>`;
 
       const q = query(collection(db, "appointments"), where("userId", "==", currentUser.uid));
       const querySnapshot = await getDocs(q);
@@ -659,7 +864,7 @@
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="empty-state">No tienes citas ${currentAppointmentFilter === 'upcoming' ? 'próximas' : (currentAppointmentFilter === 'past' ? 'pasadas' : '')}.</div>`;
+        container.innerHTML = `<div class="empty-state">${currentLang === 'es' ? 'No hay citas registradas.' : 'No appointments found.'}</div>`;
         return;
       }
 
@@ -672,16 +877,16 @@
         html += `
           <article class="card-item" style="${isPast ? 'opacity: 0.85;' : ''}">
             <div class="card-info">
-              <span class="badge ${isPast ? 'badge-past' : ''}">${item.specialty} ${isPast ? '(Completada/Pasada)' : ''}</span>
+              <span class="badge ${isPast ? 'badge-past' : ''}">${item.specialty} ${isPast ? (currentLang === 'es' ? '(Pasada)' : '(Past)') : ''}</span>
               <h4>${item.doctor}</h4>
               <p>📅 ${item.date} — ⏰ <strong>${item.time} hrs</strong></p>
-              <p>👤 Paciente: ${item.patientName}</p>
+              <p>👤 ${currentLang === 'es' ? 'Paciente' : 'Patient'}: ${item.patientName}</p>
               ${item.notes ? `<p style="color:#0f172a; margin-top:4px;">📝 <em>${item.notes}</em></p>` : ''}
             </div>
             <div class="action-buttons">
               ${!isPast ? `<a href="${gcalUrl}" target="_blank" class="btn-gcalendar">📅 Calendar</a>` : ''}
-              <button class="btn-ics" onclick="downloadIcsFile('${encodeURIComponent(JSON.stringify(item))}')">📥 Archivo .ics</button>
-              <button class="btn-danger" onclick="deleteAppointmentDoc('${item.id}')">Eliminar</button>
+              <button class="btn-ics" onclick="downloadIcsFile('${encodeURIComponent(JSON.stringify(item))}')">📥 .ics File</button>
+              <button class="btn-danger" onclick="deleteAppointmentDoc('${item.id}')">${currentLang === 'es' ? 'Eliminar' : 'Delete'}</button>
             </div>
           </article>
         `;
@@ -706,11 +911,6 @@
         `DTSTART:${formatICSDate(startDate)}`,
         `DTEND:${formatICSDate(endDate)}`,
         'STATUS:CONFIRMED',
-        'BEGIN:VALARM',
-        'TRIGGER:-PT24H',
-        'ACTION:DISPLAY',
-        'DESCRIPTION:Recordatorio de Cita Médica mañana',
-        'END:VALARM',
         'END:VEVENT',
         'END:VCALENDAR'
       ].join('\r\n');
@@ -725,13 +925,13 @@
     }
 
     window.deleteAppointmentDoc = async function(id) {
-      if (confirm('¿Eliminar registro de cita de la base de datos?')) {
+      if (confirm(currentLang === 'es' ? '¿Eliminar registro de cita?' : 'Delete appointment record?')) {
         await deleteDoc(doc(db, "appointments", id));
         renderAppointments();
       }
     }
 
-    // EXÁMENES CON NOTIFICACIÓN DE CONFIRMACIÓN
+    // EXÁMENES
     function fileToBase64(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -753,7 +953,7 @@
 
       const btnSubmit = document.getElementById('btn-examen-submit');
       btnSubmit.disabled = true;
-      btnSubmit.textContent = 'Procesando archivo...';
+      btnSubmit.textContent = currentLang === 'es' ? 'Procesando...' : 'Processing...';
 
       const file = fileInput.files[0];
       const { dataUrl, base64Pure } = await fileToBase64(file);
@@ -790,13 +990,13 @@
       showAlert('alert-examen');
 
       sendSystemNotification(
-        "Examen Guardado",
-        `Se ha agregado correctamente "${newExam.title}" (${newExam.category}).`
+        currentLang === 'es' ? "Examen Guardado" : "Exam Saved",
+        `"${newExam.title}" (${newExam.category})`
       );
 
       document.getElementById('form-examen').reset();
       btnSubmit.disabled = false;
-      btnSubmit.textContent = 'Guardar Examen en MiDocuMed';
+      btnSubmit.textContent = i18n[currentLang].btnSubmitExam;
       renderExams();
     });
 
@@ -823,7 +1023,7 @@
     function displayFilteredExams(exams) {
       const container = document.getElementById('exam-list');
       if (exams.length === 0) {
-        container.innerHTML = '<div class="empty-state">No hay exámenes guardados.</div>';
+        container.innerHTML = `<div class="empty-state">${currentLang === 'es' ? 'No hay exámenes guardados.' : 'No exams saved.'}</div>`;
         return;
       }
 
@@ -834,12 +1034,12 @@
             <div class="card-info">
               <span class="badge" style="background:#fef3c7; color:#78350f">${item.category}</span>
               <h4>${item.title}</h4>
-              <p>📅 Fecha: ${item.date}</p>
-              <p>📄 Archivo: <strong>${item.fileName}</strong></p>
+              <p>📅 ${currentLang === 'es' ? 'Fecha' : 'Date'}: ${item.date}</p>
+              <p>📄 ${currentLang === 'es' ? 'Archivo' : 'File'}: <strong>${item.fileName}</strong></p>
             </div>
             <div class="action-buttons">
-              <button class="btn-view" onclick="viewExam(${item.id})">👁️ Ver Examen</button>
-              <button class="btn-danger" onclick="deleteExamLocal(${item.id})">Eliminar</button>
+              <button class="btn-view" onclick="viewExamModal(${item.id})">👁️ ${currentLang === 'es' ? 'Ver Examen' : 'View Exam'}</button>
+              <button class="btn-danger" onclick="deleteExamLocal(${item.id})">${currentLang === 'es' ? 'Eliminar' : 'Delete'}</button>
             </div>
           </article>
         `;
@@ -847,29 +1047,36 @@
       container.innerHTML = html;
     }
 
-    window.viewExam = function(id) {
+    window.viewExamModal = function(id) {
       if (!currentUser) return;
       const userStorageKey = `midocumed_exams_${currentUser.uid}`;
       const exams = JSON.parse(localStorage.getItem(userStorageKey)) || [];
       const exam = exams.find(item => item.id === id);
 
       if (exam && exam.fileDataUrl) {
-        const win = window.open();
-        if (win) {
-          if (exam.fileMimeType && exam.fileMimeType.includes('pdf')) {
-            win.document.write(`<iframe src="${exam.fileDataUrl}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
-          } else {
-            win.document.write(`<div style="display:flex;justify-content:center;align-items:center;min-height:100vh;background:#0f172a;"><img src="${exam.fileDataUrl}" style="max-width:100%;max-height:100vh;object-fit:contain;" alt="${exam.title}" /></div>`);
-          }
+        document.getElementById('viewer-title').textContent = exam.title;
+        const container = document.getElementById('viewer-content');
+
+        if (exam.fileMimeType && exam.fileMimeType.includes('pdf')) {
+          container.innerHTML = `<iframe src="${exam.fileDataUrl}" style="width:100%; height:100%; border:none;"></iframe>`;
+        } else {
+          container.innerHTML = `<img src="${exam.fileDataUrl}" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:8px;" alt="${exam.title}" />`;
         }
+
+        document.getElementById('viewer-modal').style.display = 'flex';
       } else {
-        alert('No se pudo encontrar el archivo.');
+        alert('No file found.');
       }
+    }
+
+    window.closeExamViewer = function() {
+      document.getElementById('viewer-modal').style.display = 'none';
+      document.getElementById('viewer-content').innerHTML = '';
     }
 
     window.deleteExamLocal = function(id) {
       if (!currentUser) return;
-      if (confirm('¿Eliminar este examen?')) {
+      if (confirm(currentLang === 'es' ? '¿Eliminar este examen?' : 'Delete this exam?')) {
         const userStorageKey = `midocumed_exams_${currentUser.uid}`;
         let exams = JSON.parse(localStorage.getItem(userStorageKey)) || [];
         exams = exams.filter(item => item.id !== id);
@@ -909,13 +1116,17 @@
     let currentStep = 1;
     window.openTutorial = () => { currentStep = 1; showStep(1); document.getElementById('tutorial-modal').style.display = 'flex'; };
     window.closeTutorial = () => { document.getElementById('tutorial-modal').style.display = 'none'; localStorage.setItem('midocumed_tutorial_seen', 'true'); };
-    function showStep(s) { document.querySelectorAll('.tutorial-step').forEach(e => e.classList.remove('active')); document.getElementById(`step-${s}`).classList.add('active'); document.getElementById('btn-next-step').textContent = s === 3 ? 'Comenzar' : 'Siguiente'; }
+    function showStep(s) { document.querySelectorAll('.tutorial-step').forEach(e => e.classList.remove('active')); document.getElementById(`step-${s}`).classList.add('active'); document.getElementById('btn-next-step').textContent = s === 3 ? i18n[currentLang].btnStart : i18n[currentLang].btnNext; }
     window.nextTutorialStep = () => { if (currentStep < 3) { currentStep++; showStep(currentStep); } else closeTutorial(); };
 
     document.addEventListener('DOMContentLoaded', () => {
       applyFontSize(currentFontSize);
       document.getElementById('specialties-list').innerHTML = allSpecialties.map(spec => `<option value="${spec}">`).join('');
       document.getElementById('date').setAttribute('min', new Date().toISOString().split('T')[0]);
+      
+      // Aplicar idioma inicial
+      changeLanguage(currentLang);
+
       if (!localStorage.getItem('midocumed_tutorial_seen')) openTutorial();
     });
   </script>
